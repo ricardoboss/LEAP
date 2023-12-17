@@ -4,7 +4,7 @@ public record CreateTokenResult(string Code, string Message, string? Token)
 {
 	public static CreateTokenResult Unauthorized()
 	{
-		return new("unauthorized", "Invalid username or password", null);
+		return new("invalid_credentials", "Invalid username or password", null);
 	}
 
 	public static CreateTokenResult Success(string token)
