@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Leap.API.Extensions;
 
-public static class IConfigurationExtensions
+public static class ConfigurationExtensions
 {
 	public static string GetJwtIssuer(this IConfiguration configuration)
 	{

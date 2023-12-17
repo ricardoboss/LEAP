@@ -3,17 +3,9 @@ using Microsoft.Extensions.Http;
 
 namespace Leap.Client;
 
-public class LeapApiClientFactory : ITypedHttpClientFactory<LeapApiClient>
+public class LeapApiClientFactory(LeapApiCredentialManager? manager, IConfiguration configuration)
+	: ITypedHttpClientFactory<LeapApiClient>
 {
-	private readonly LeapApiCredentialManager? credentialManager;
-	private readonly IConfiguration configuration;
-
-	public LeapApiClientFactory(LeapApiCredentialManager? credentialManager, IConfiguration configuration)
-	{
-		this.credentialManager = credentialManager;
-		this.configuration = configuration;
-	}
-
 	private string? GetConfiguredBaseAddress()
 	{
 		return configuration["LeapApi:BaseAddress"];
@@ -21,7 +13,7 @@ public class LeapApiClientFactory : ITypedHttpClientFactory<LeapApiClient>
 
 	public LeapApiClient CreateClient(HttpClient httpClient)
 	{
-		var credentials = credentialManager?.TryReadCredentials();
+		Credentials? credentials = manager?.TryReadCredentials();
 
 		httpClient.BaseAddress =
 			new(GetConfiguredBaseAddress() ?? credentials?.BaseAddress ?? Credentials.DefaultApiBaseAddress);

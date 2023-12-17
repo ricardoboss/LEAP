@@ -14,19 +14,9 @@ namespace Leap.API.Controllers;
 
 [ApiController]
 [Route("[controller]/{author}/{name}")]
-public class LibrariesController : ControllerBase
+public class LibrariesController(LeapApiDbContext context, ILibraryStorage storage, ILogger<LibrariesController> logger)
+	: ControllerBase
 {
-	private readonly LeapApiDbContext context;
-	private readonly ILibraryStorage storage;
-	private readonly ILogger<LibrariesController> logger;
-
-	public LibrariesController(LeapApiDbContext context, ILibraryStorage storage, ILogger<LibrariesController> logger)
-	{
-		this.context = context;
-		this.storage = storage;
-		this.logger = logger;
-	}
-
 	private string GetDownloadUrl(string author, string name, string version)
 	{
 		return Url.ActionLink("Download", "Libraries", new
@@ -43,7 +33,7 @@ public class LibrariesController : ControllerBase
 	public async Task<IActionResult> Get(string author, string name, string? version,
 		CancellationToken cancellationToken = default)
 	{
-		var library = await context.Libraries
+		Library? library = await context.Libraries
 			.Include(library => library.LatestVersion)
 			.ThenInclude(v => v!.Dependencies)
 			.Include(library => library.Versions)
@@ -58,13 +48,13 @@ public class LibrariesController : ControllerBase
 		{
 			libraryVersion = library.LatestVersion;
 		}
-		else if (SemVersionRange.TryParse(version, out var semVersionRange))
+		else if (SemVersionRange.TryParse(version, out SemVersionRange? semVersionRange))
 		{
 			libraryVersion = library.Versions
 				.Where(v => semVersionRange.Contains(SemVersion.Parse(v.Version, SemVersionStyles.Strict)))
 				.MaxBy(v => SemVersion.Parse(v.Version, SemVersionStyles.Strict));
 		}
-		else if (SemVersion.TryParse(version, SemVersionStyles.Strict, out var semVersion))
+		else if (SemVersion.TryParse(version, SemVersionStyles.Strict, out SemVersion? semVersion))
 		{
 			libraryVersion =
 				library.Versions.FirstOrDefault(v =>
@@ -116,7 +106,7 @@ public class LibrariesController : ControllerBase
 					author, name, version, metadata.Downloads);
 			}, cancellationToken);
 
-			var stream = await storage.OpenReadAsync(author, name, version, cancellationToken);
+			Stream stream = await storage.OpenReadAsync(author, name, version, cancellationToken);
 
 			HttpContext.Response.RegisterForDisposeAsync(stream);
 
@@ -155,14 +145,14 @@ public class LibrariesController : ControllerBase
 		}
 
 		var authorIdStr = User.FindFirstValue(TokenGenerator.IdClaim);
-		if (authorIdStr is null || !Guid.TryParse(authorIdStr, out var authorId))
+		if (authorIdStr is null || !Guid.TryParse(authorIdStr, out Guid authorId))
 		{
 			logger.LogTrace("Upload request rejected because of an invalid ID claim (ID: '{Id}')", authorIdStr);
 
 			return Unauthorized(UploadResult.Unauthorized("Invalid ID claim."));
 		}
 
-		var uploader = await context.Authors
+		Author? uploader = await context.Authors
 			.Include(a => a.Libraries)
 			.FirstOrDefaultAsync(a => a.Id == authorId, cancellationToken);
 		if (uploader is null)
@@ -174,7 +164,7 @@ public class LibrariesController : ControllerBase
 
 		logger.LogTrace("Found uploader {Uploader}", uploader);
 
-		var library = await context.Libraries
+		Library? library = await context.Libraries
 			.Include(l => l.LatestVersion)
 			.Include(l => l.Versions)
 			.Include(l => l.Maintainers)
@@ -243,7 +233,7 @@ public class LibrariesController : ControllerBase
 			return UnprocessableEntity(UploadResult.VersionInvalid(version));
 		}
 
-		var existingVersion = library.Versions.FirstOrDefault(v => v.Version == version);
+		LibraryVersion? existingVersion = library.Versions.FirstOrDefault(v => v.Version == version);
 		if (existingVersion is not null)
 		{
 			logger.LogInformation(
@@ -253,7 +243,7 @@ public class LibrariesController : ControllerBase
 			return UnprocessableEntity(UploadResult.VersionAlreadyExists(version));
 		}
 
-		var latestVersion = library.LatestVersion;
+		LibraryVersion? latestVersion = library.LatestVersion;
 		if (latestVersion is not null)
 		{
 			var latestVersionSemVer = SemVersion.Parse(latestVersion.Version, SemVersionStyles.Strict);
@@ -288,7 +278,7 @@ public class LibrariesController : ControllerBase
 
 		logger.LogTrace("Receiving content of new version {Version} of {Library}", newVersionSemVer, library);
 
-		await using var targetStream = storage.OpenWrite(author, name, version, cancellationToken);
+		await using Stream targetStream = storage.OpenWrite(author, name, version, cancellationToken);
 
 		// FIXME: check actual length before writing to storage as bad actors could fake the content-length header and flood the storage if unchecked
 		await Request.Body.CopyToAsync(targetStream, cancellationToken);

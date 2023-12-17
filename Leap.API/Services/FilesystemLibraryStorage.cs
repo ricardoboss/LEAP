@@ -3,17 +3,9 @@ using Leap.API.Interfaces;
 
 namespace Leap.API.Services;
 
-public class FilesystemLibraryStorage : ILibraryStorage
+public class FilesystemLibraryStorage(IConfiguration configuration, ILogger<FilesystemLibraryStorage> logger)
+	: ILibraryStorage
 {
-	private readonly IConfiguration configuration;
-	private readonly ILogger<FilesystemLibraryStorage> logger;
-
-	public FilesystemLibraryStorage(IConfiguration configuration, ILogger<FilesystemLibraryStorage> logger)
-	{
-		this.configuration = configuration;
-		this.logger = logger;
-	}
-
 	private readonly Dictionary<string, DirectoryInfo> libraryVersionDirectoryCache = new();
 
 	private string BasePath => configuration.GetValue<string>("Storage:BasePath") ??
@@ -35,10 +27,10 @@ public class FilesystemLibraryStorage : ILibraryStorage
 	private DirectoryInfo GetLibraryVersionDirectory(string author, string name, string version, bool create = false)
 	{
 		var cacheKey = $"{author}/{name}/{version}";
-		if (libraryVersionDirectoryCache.TryGetValue(cacheKey, out var dir))
+		if (libraryVersionDirectoryCache.TryGetValue(cacheKey, out DirectoryInfo? dir))
 			return dir;
 
-		var libraryDirectory = GetLibraryDirectory(author, name, create);
+		DirectoryInfo libraryDirectory = GetLibraryDirectory(author, name, create);
 		var libraryVersionDirectory = new DirectoryInfo(Path.Combine(libraryDirectory.FullName, version));
 
 		libraryVersionDirectoryCache[cacheKey] = libraryVersionDirectory;
@@ -56,7 +48,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 	public Task<bool> ExistsAsync(string author, string name, string version,
 		CancellationToken cancellationToken = default)
 	{
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
 
 		return Task.FromResult(libraryVersionDirectory.Exists);
 	}
@@ -68,7 +60,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 		if (!await ExistsAsync(author, name, version, cancellationToken))
 			return null;
 
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
 		var metadataFile = new FileInfo(Path.Combine(libraryVersionDirectory.FullName, "metadata.json"));
 
 		if (!metadataFile.Exists)
@@ -77,9 +69,9 @@ public class FilesystemLibraryStorage : ILibraryStorage
 		logger.LogTrace("Reading metadata for {Author}/{Name}@{Version} from {Path}", author, name, version,
 			metadataFile.FullName);
 
-		await using var stream = metadataFile.OpenRead();
+		await using FileStream stream = metadataFile.OpenRead();
 
-		var metadata =
+		StorageMetadata? metadata =
 			await JsonSerializer.DeserializeAsync<StorageMetadata>(stream, cancellationToken: cancellationToken);
 		if (metadata is null)
 			throw new("Failed to deserialize metadata.");
@@ -91,13 +83,13 @@ public class FilesystemLibraryStorage : ILibraryStorage
 	public async Task SetMetadataAsync(string author, string name, string version, StorageMetadata metadata,
 		CancellationToken cancellationToken = default)
 	{
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version, true);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version, true);
 		var metadataFile = new FileInfo(Path.Combine(libraryVersionDirectory.FullName, "metadata.json"));
 
 		logger.LogTrace("Writing metadata for {Author}/{Name}@{Version} to {Path}", author, name, version,
 			metadataFile.FullName);
 
-		await using var stream = metadataFile.OpenWrite();
+		await using FileStream stream = metadataFile.OpenWrite();
 
 		await JsonSerializer.SerializeAsync(stream, metadata, cancellationToken: cancellationToken);
 
@@ -111,7 +103,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 		if (!await ExistsAsync(author, name, version, cancellationToken))
 			throw new("Library version does not exist.");
 
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
 
 		var libraryFile = new FileInfo(Path.Combine(libraryVersionDirectory.FullName, "library.zip"));
 
@@ -127,7 +119,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 	/// <inheritdoc />
 	public Stream OpenWrite(string author, string name, string version, CancellationToken cancellationToken = default)
 	{
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version, true);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version, true);
 
 		logger.LogTrace("Writing library for {Author}/{Name}@{Version} to {Path}", author, name, version,
 			libraryVersionDirectory.FullName);
@@ -144,7 +136,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 		if (!await ExistsAsync(author, name, version, cancellationToken))
 			return;
 
-		var libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
+		DirectoryInfo libraryVersionDirectory = GetLibraryVersionDirectory(author, name, version);
 
 		logger.LogTrace("Deleting library version {Author}/{Name}@{Version} from {Path}", author, name, version,
 			libraryVersionDirectory.FullName);
@@ -155,7 +147,7 @@ public class FilesystemLibraryStorage : ILibraryStorage
 	/// <inheritdoc />
 	public Task DeleteAsync(string author, string name, CancellationToken cancellationToken = default)
 	{
-		var libraryDirectory = GetLibraryDirectory(author, name);
+		DirectoryInfo libraryDirectory = GetLibraryDirectory(author, name);
 		if (!libraryDirectory.Exists)
 			throw new("Library does not exist.");
 

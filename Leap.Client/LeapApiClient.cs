@@ -4,15 +4,8 @@ using Leap.Common.API;
 
 namespace Leap.Client;
 
-public class LeapApiClient
+public class LeapApiClient(HttpClient client)
 {
-	private readonly HttpClient httpClient;
-
-	public LeapApiClient(HttpClient httpClient)
-	{
-		this.httpClient = httpClient;
-	}
-
 	public async Task<BriefLibraryVersion?> GetLibraryAsync(string author, string name, string? version = null,
 		CancellationToken cancellationToken = default)
 	{
@@ -66,7 +59,7 @@ public class LeapApiClient
 	{
 		return await WrapAsync(async () =>
 		{
-			var response = await httpClient.GetAsync(uri, cancellationToken);
+			HttpResponseMessage response = await client.GetAsync(uri, cancellationToken);
 
 			response.EnsureSuccessStatusCode();
 
@@ -79,7 +72,7 @@ public class LeapApiClient
 	{
 		return await WrapAsync(async () =>
 		{
-			var response = await httpClient.PostAsJsonAsync(uri, content, cancellationToken);
+			HttpResponseMessage response = await client.PostAsJsonAsync(uri, content, cancellationToken);
 
 			response.EnsureSuccessStatusCode();
 
@@ -91,11 +84,12 @@ public class LeapApiClient
 	{
 		return await WrapAsync(async () =>
 		{
-			var response = await httpClient.PostAsync(uri, new StreamContent(stream), cancellationToken);
+			HttpResponseMessage response =
+				await client.PostAsync(uri, new StreamContent(stream), cancellationToken);
 
 			response.EnsureSuccessStatusCode();
 
-			var body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+			T? body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
 
 			return body;
 		}, cancellationToken);

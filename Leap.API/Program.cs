@@ -18,7 +18,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-	var builder = WebApplication.CreateBuilder(args);
+	WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 	builder.Host.UseSerilog((context, services, configuration) => configuration
 		.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -80,13 +80,13 @@ try
 		});
 	});
 
-	var app = builder.Build();
+	WebApplication app = builder.Build();
 
 	app.UseSerilogRequestLogging();
 
-	await using (var scope = app.Services.CreateAsyncScope())
+	await using (AsyncServiceScope scope = app.Services.CreateAsyncScope())
 	{
-		var context = scope.ServiceProvider.GetRequiredService<LeapApiDbContext>();
+		LeapApiDbContext context = scope.ServiceProvider.GetRequiredService<LeapApiDbContext>();
 
 		await context.InitializeAsync();
 	}

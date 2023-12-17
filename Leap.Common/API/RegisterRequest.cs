@@ -25,10 +25,11 @@ public record RegisterRequest(string Username, string Password)
 			throw new ValidationException(
 				"User name must only contain lowercase characters and hyphens (-) and must start and end with a character with a minimum length of 2 characters.");
 
-		if (PasswordValidator.Value.PasswordIsValid(Password, out var requirements))
+		if (PasswordValidator.Value.PasswordIsValid(Password,
+			    out (Requirement Requirement, bool Success)[] requirements))
 			return;
 
-		var firstFailedRequirement = requirements.First(t => !t.Success);
+		(Requirement Requirement, bool Success) firstFailedRequirement = requirements.First(t => !t.Success);
 
 		switch (firstFailedRequirement.Requirement.Type)
 		{
@@ -42,7 +43,8 @@ public record RegisterRequest(string Username, string Password)
 				throw new ValidationException(
 					$"Password must not contain more than {PasswordRule.Value.MaxConsecutive} consecutive characters.");
 			case RequirementType.RequiredChars:
-				var requiredChars = ((CharacterClassRequirement)firstFailedRequirement.Requirement).CharacterClass;
+				CharacterClass requiredChars =
+					((CharacterClassRequirement)firstFailedRequirement.Requirement).CharacterClass;
 				if (requiredChars == CharacterClass.Upper)
 					throw new ValidationException("Password must contain at least one uppercase character.");
 

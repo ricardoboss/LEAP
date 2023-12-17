@@ -4,31 +4,26 @@ using System.Text.RegularExpressions;
 
 namespace Leap.Common;
 
-public partial class Library
+public partial class Library(
+	string name,
+	string? version,
+	string? author,
+	Dictionary<string, string>? dependencies,
+	List<string>? files)
 {
 	[JsonIgnore] public string NameAuthorPart => GetAuthorPart(Name);
 
 	[JsonIgnore] public string NameLibraryPart => GetLibraryPart(Name);
 
-	public string Name { get; set; }
+	public string Name { get; set; } = name;
 
-	public string? Version { get; set; }
+	public string? Version { get; set; } = version;
 
-	public string? Author { get; set; }
+	public string? Author { get; set; } = author;
 
-	public Dictionary<string, string>? Dependencies { get; set; }
+	public Dictionary<string, string>? Dependencies { get; set; } = dependencies;
 
-	public List<string>? Files { get; set; }
-
-	public Library(string name, string? version, string? author, Dictionary<string, string>? dependencies,
-		List<string>? files)
-	{
-		Name = name;
-		Version = version;
-		Author = author;
-		Dependencies = dependencies;
-		Files = files;
-	}
+	public List<string>? Files { get; set; } = files;
 
 	[GeneratedRegex("^[a-z][-a-z]{0,16}[a-z]$")]
 	public static partial Regex UsernameRegex();

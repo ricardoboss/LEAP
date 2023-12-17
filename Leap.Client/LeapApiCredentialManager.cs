@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Leap.Client;
 
-public class LeapApiCredentialManager
+public class LeapApiCredentialManager(IConfiguration configuration)
 {
 	private static string? defaultCredentialsPath;
 
@@ -18,13 +18,6 @@ public class LeapApiCredentialManager
 
 			return defaultCredentialsPath = Path.Combine(appData, "STEP", "credentials.json");
 		}
-	}
-
-	private readonly IConfiguration configuration;
-
-	public LeapApiCredentialManager(IConfiguration configuration)
-	{
-		this.configuration = configuration;
 	}
 
 	private string CredentialsPath
@@ -47,7 +40,7 @@ public class LeapApiCredentialManager
 		if (!CredentialsExist())
 			return null;
 
-		using var stream = File.OpenRead(CredentialsPath);
+		using FileStream stream = File.OpenRead(CredentialsPath);
 
 		return cachedCredentials = JsonSerializer.Deserialize<Credentials>(stream);
 	}
@@ -62,7 +55,7 @@ public class LeapApiCredentialManager
 		if (dir != null && !Directory.Exists(dir))
 			Directory.CreateDirectory(dir);
 
-		using var stream = File.OpenWrite(CredentialsPath);
+		using FileStream stream = File.OpenWrite(CredentialsPath);
 
 		JsonSerializer.SerializeAsync(stream, newCredentials);
 

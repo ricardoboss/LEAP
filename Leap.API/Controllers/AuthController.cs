@@ -8,27 +8,18 @@ using Leap.Common.API;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Leap.API.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class AuthController : ControllerBase
+public class AuthController(
+	LeapApiDbContext context,
+	ITokenGenerator generator,
+	IPasswordHasher<Author> hasher,
+	ILogger<AuthController> logger) : ControllerBase
 {
-	private readonly LeapApiDbContext context;
-	private readonly IPasswordHasher<Author> passwordHasher;
-	private readonly ITokenGenerator tokenGenerator;
-	private readonly ILogger<AuthController> logger;
-
-	public AuthController(LeapApiDbContext context, ITokenGenerator tokenGenerator,
-		IPasswordHasher<Author> passwordHasher, ILogger<AuthController> logger)
-	{
-		this.context = context;
-		this.tokenGenerator = tokenGenerator;
-		this.passwordHasher = passwordHasher;
-		this.logger = logger;
-	}
-
 	[HttpPost]
 	[ProducesResponseType(typeof(RegisterResult), StatusCodes.Status409Conflict)]
 	[ProducesResponseType(typeof(RegisterResult), StatusCodes.Status200OK)]
@@ -36,7 +27,7 @@ public class AuthController : ControllerBase
 	{
 		logger.LogTrace("Incoming register request");
 
-		var existingAuthor = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
+		Author? existingAuthor = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
 		if (existingAuthor is not null)
 		{
 			logger.LogInformation("Rejected register request because of a duplicate username ({Username})",
@@ -63,17 +54,17 @@ public class AuthController : ControllerBase
 			Username = request.Username
 		};
 
-		var passwordHash = passwordHasher.HashPassword(author, request.Password);
+		var passwordHash = hasher.HashPassword(author, request.Password);
 		author.PasswordHash = passwordHash;
 
 		logger.LogTrace("Adding new author to DB (Username: {Username})", author.Username);
 
-		var entity = await context.Authors.AddAsync(author);
+		EntityEntry<Author> entity = await context.Authors.AddAsync(author);
 		await context.SaveChangesAsync();
 
 		logger.LogInformation("New author registered: {Author}", entity.Entity);
 
-		var token = tokenGenerator.Create(author);
+		var token = generator.Create(author);
 
 		logger.LogTrace("Returning token after successful registration");
 
@@ -87,7 +78,7 @@ public class AuthController : ControllerBase
 	{
 		logger.LogTrace("Incoming create token request");
 
-		var author = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
+		Author? author = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
 		if (author is null)
 		{
 			logger.LogTrace(
@@ -97,7 +88,7 @@ public class AuthController : ControllerBase
 			return Unauthorized(CreateTokenResult.Unauthorized());
 		}
 
-		var result = passwordHasher.VerifyHashedPassword(author, author.PasswordHash, request.Password);
+		PasswordVerificationResult result = hasher.VerifyHashedPassword(author, author.PasswordHash, request.Password);
 		if (result == PasswordVerificationResult.Failed)
 		{
 			logger.LogTrace("Rejected create token request because password validation failed for username {Username}",
@@ -112,11 +103,11 @@ public class AuthController : ControllerBase
 		{
 			logger.LogTrace("Password hash needs to be updated. Rehashing password for {Author}", author);
 
-			author.PasswordHash = passwordHasher.HashPassword(author, request.Password);
+			author.PasswordHash = hasher.HashPassword(author, request.Password);
 			await context.SaveChangesAsync();
 		}
 
-		var token = tokenGenerator.Create(author);
+		var token = generator.Create(author);
 
 		logger.LogTrace("Returning token after successful create token request");
 
@@ -140,7 +131,7 @@ public class AuthController : ControllerBase
 			return Unauthorized(AuthCheckResult.NoIdClaim());
 		}
 
-		if (!Guid.TryParse(idStr, out var id))
+		if (!Guid.TryParse(idStr, out Guid id))
 		{
 			logger.LogTrace(
 				"Check authentication request failed because of an invalid id in claim ('{Id}' could not be parsed as a GUID)",
@@ -149,7 +140,7 @@ public class AuthController : ControllerBase
 			return BadRequest(AuthCheckResult.InvalidIdClaim());
 		}
 
-		var author = context.Authors.Find(id);
+		Author? author = context.Authors.Find(id);
 		if (author is null)
 		{
 			logger.LogTrace(

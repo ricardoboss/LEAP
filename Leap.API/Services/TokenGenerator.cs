@@ -7,19 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Leap.API.Services;
 
-public class TokenGenerator : ITokenGenerator
+public class TokenGenerator(IConfiguration configuration, ILogger<TokenGenerator> logger)
+	: ITokenGenerator
 {
 	public const string IdClaim = "id";
 	public const string UsernameClaim = "username";
-
-	private readonly IConfiguration configuration;
-	private readonly ILogger<TokenGenerator> logger;
-
-	public TokenGenerator(IConfiguration configuration, ILogger<TokenGenerator> logger)
-	{
-		this.configuration = configuration;
-		this.logger = logger;
-	}
 
 	/// <inheritdoc />
 	public string Create(Author author)
@@ -34,7 +26,7 @@ public class TokenGenerator : ITokenGenerator
 
 		logger.LogTrace("Adding claims {Claims}", claims);
 
-		var key = configuration.GetJwtSecretKey();
+		SymmetricSecurityKey key = configuration.GetJwtSecretKey();
 		var issuer = configuration.GetJwtIssuer();
 		var audience = configuration.GetJwtAudience();
 
@@ -48,7 +40,7 @@ public class TokenGenerator : ITokenGenerator
 		};
 
 		var handler = new JwtSecurityTokenHandler();
-		var securityToken = handler.CreateToken(descriptor);
+		SecurityToken? securityToken = handler.CreateToken(descriptor);
 
 		logger.LogInformation("Emitting new JWT for author {Author}", author);
 

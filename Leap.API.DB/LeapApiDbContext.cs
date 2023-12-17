@@ -3,21 +3,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Leap.API.DB;
 
-public class LeapApiDbContext : DbContext
+public class LeapApiDbContext(DbContextOptions<LeapApiDbContext> options) : DbContext(options)
 {
-	public LeapApiDbContext(DbContextOptions<LeapApiDbContext> options) : base(options)
-	{
-	}
-
 	public DbSet<Library> Libraries { get; set; } = null!;
 
 	public DbSet<LibraryVersion> LibraryVersions { get; set; } = null!;
 
 	public DbSet<Author> Authors { get; set; } = null!;
 
-	public async Task InitializeAsync(CancellationToken cancellationToken = default)
+	public Task InitializeAsync(CancellationToken cancellationToken = default)
 	{
-		await Database.MigrateAsync(cancellationToken);
+		return Database.MigrateAsync(cancellationToken);
 	}
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
