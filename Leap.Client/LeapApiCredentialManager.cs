@@ -5,81 +5,82 @@ namespace Leap.Client;
 
 public class LeapApiCredentialManager
 {
-    private static string? defaultCredentialsPath;
-    private static string DefaultCredentialsPath
-    {
-        get
-        {
-            if (defaultCredentialsPath != null)
-                return defaultCredentialsPath;
+	private static string? defaultCredentialsPath;
 
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+	private static string DefaultCredentialsPath
+	{
+		get
+		{
+			if (defaultCredentialsPath != null)
+				return defaultCredentialsPath;
 
-            return defaultCredentialsPath = Path.Combine(appData, "STEP", "credentials.json");
-        }
-    }
+			var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-    private readonly IConfiguration configuration;
+			return defaultCredentialsPath = Path.Combine(appData, "STEP", "credentials.json");
+		}
+	}
 
-    public LeapApiCredentialManager(IConfiguration configuration)
-    {
-        this.configuration = configuration;
-    }
+	private readonly IConfiguration configuration;
 
-    private string CredentialsPath
-    {
-        get
-        {
-            var path = configuration["CredentialsPath"];
+	public LeapApiCredentialManager(IConfiguration configuration)
+	{
+		this.configuration = configuration;
+	}
 
-            return path ?? DefaultCredentialsPath;
-        }
-    }
+	private string CredentialsPath
+	{
+		get
+		{
+			var path = configuration["CredentialsPath"];
 
-    private Credentials? cachedCredentials;
+			return path ?? DefaultCredentialsPath;
+		}
+	}
 
-    public Credentials? TryReadCredentials()
-    {
-        if (cachedCredentials != null)
-            return cachedCredentials;
+	private Credentials? cachedCredentials;
 
-        if (!CredentialsExist())
-            return null;
+	public Credentials? TryReadCredentials()
+	{
+		if (cachedCredentials != null)
+			return cachedCredentials;
 
-        using var stream = File.OpenRead(CredentialsPath);
+		if (!CredentialsExist())
+			return null;
 
-        return cachedCredentials = JsonSerializer.Deserialize<Credentials>(stream);
-    }
+		using var stream = File.OpenRead(CredentialsPath);
 
-    public void StoreCredentials(Credentials newCredentials, bool overwrite)
-    {
-        if (CredentialsExist() && !overwrite)
-            throw new InvalidOperationException("Credentials already exist.");
+		return cachedCredentials = JsonSerializer.Deserialize<Credentials>(stream);
+	}
 
-        var dir = Path.GetDirectoryName(CredentialsPath);
+	public void StoreCredentials(Credentials newCredentials, bool overwrite)
+	{
+		if (CredentialsExist() && !overwrite)
+			throw new InvalidOperationException("Credentials already exist.");
 
-        if (dir != null && !Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
+		var dir = Path.GetDirectoryName(CredentialsPath);
 
-        using var stream = File.OpenWrite(CredentialsPath);
+		if (dir != null && !Directory.Exists(dir))
+			Directory.CreateDirectory(dir);
 
-        JsonSerializer.SerializeAsync(stream, newCredentials);
+		using var stream = File.OpenWrite(CredentialsPath);
 
-        cachedCredentials = newCredentials;
-    }
+		JsonSerializer.SerializeAsync(stream, newCredentials);
 
-    public bool CredentialsExist()
-    {
-        return File.Exists(CredentialsPath);
-    }
+		cachedCredentials = newCredentials;
+	}
 
-    public void DestroyCredentials()
-    {
-        if (!CredentialsExist())
-            return;
+	public bool CredentialsExist()
+	{
+		return File.Exists(CredentialsPath);
+	}
 
-        File.Delete(CredentialsPath);
+	public void DestroyCredentials()
+	{
+		if (!CredentialsExist())
+			return;
 
-        cachedCredentials = null;
-    }
+		File.Delete(CredentialsPath);
+
+		cachedCredentials = null;
+	}
 }

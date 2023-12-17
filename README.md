@@ -9,7 +9,7 @@ A service for distributing and downloading [STEP] libraries.
 This repository contains several projects providing different parts for the LEAP ecosystem:
 
 - `Leap.API`: An ASP.NET project for hosting a LEAP instance
-- `Leap.API.DB`: 
+- `Leap.API.DB`: The database layer for the `Leap.API`
 - `Leap.Client`: A HTTP client for the `Leap.API`
 - `Leap.Common`: A library of common code for the client and the API
 
@@ -53,6 +53,7 @@ services:
     volumes:
       - ./data:/app/data
 ```
+
 </details>
 
 ## Development

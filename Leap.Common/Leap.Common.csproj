@@ -1,30 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <LangVersion>default</LangVersion>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>LEAP Common</Title>
-        <Authors>Ricardo Boss</Authors>
-        <Description>A library of common code for projects using/interacting with LEAP packages</Description>
-        <Copyright>2023 Ricardo Boss</Copyright>
-        <PackageProjectUrl>https://github.com/ricardoboss/LEAP</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/ricardoboss/LEAP</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <PackageReleaseNotes>Initial version release</PackageReleaseNotes>
-    </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>default</LangVersion>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Title>LEAP Common</Title>
+		<Authors>Ricardo Boss</Authors>
+		<Description>A library of common code for projects using/interacting with LEAP packages</Description>
+		<Copyright>2023 Ricardo Boss</Copyright>
+		<PackageProjectUrl>https://github.com/ricardoboss/LEAP</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ricardoboss/LEAP</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageReleaseNotes>Initial version release</PackageReleaseNotes>
+	</PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Http" />
-      <PackageReference Include="PasswordRulesSharp" />
-      <PackageReference Include="Semver" />
-      <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-    </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Http"/>
+		<PackageReference Include="PasswordRulesSharp"/>
+		<PackageReference Include="Semver"/>
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
+	</ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="DTO\" />
-    </ItemGroup>
+	<ItemGroup>
+		<Folder Include="DTO\"/>
+	</ItemGroup>
 
 </Project>
