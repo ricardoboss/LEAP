@@ -5,6 +5,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>LEAP API Client</Title>
+        <Authors>Ricardo Boss</Authors>
+        <Description>An API client for LEAP APIs.</Description>
+        <Copyright>2023 Ricardo Boss</Copyright>
+        <PackageProjectUrl>https://github.com/ricardoboss/LEAP</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ricardoboss/LEAP</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
