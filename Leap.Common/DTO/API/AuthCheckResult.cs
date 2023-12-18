@@ -1,10 +1,10 @@
-namespace Leap.Common.API;
+namespace Leap.Common.DTO.API;
 
-public record AuthCheckResult(string Code, string Message)
+public record AuthCheckResult(string Code, string Message) : DefaultResult(Code, Message, null)
 {
 	public static AuthCheckResult Success(string username)
 	{
-		return new("success", $"Successfully authenticated as {username}.");
+		return new(CodeSuccess, $"Successfully authenticated as {username}.");
 	}
 
 	public static AuthCheckResult NoIdClaim()

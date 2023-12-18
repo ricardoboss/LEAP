@@ -8,8 +8,10 @@ public static class LeapApiClientExtensions
 	{
 		return services
 			.AddSingleton<LeapApiClientFactory>()
-			.AddHttpClient<LeapApiClient>((sp, http) =>
-				sp.GetRequiredService<LeapApiClientFactory>().CreateClient(http));
+			.AddHttpClient<LeapApiClient>(
+				(sp, http) =>
+					sp.GetRequiredService<LeapApiClientFactory>().CreateClient(http)
+			);
 	}
 
 	public static IServiceCollection AddLeapCredentialManager(this IServiceCollection services)

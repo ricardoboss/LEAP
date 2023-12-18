@@ -3,55 +3,58 @@ using Leap.API.DB;
 using Leap.API.DB.Entities;
 using Leap.API.Interfaces;
 using Leap.API.Services;
-using Leap.Common;
-using Leap.Common.API;
+using Leap.Common.DTO.API;
+using Leap.Common.Validators.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Leap.API.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class AuthController(
+public class AuthController
+(
 	LeapApiDbContext context,
 	ITokenGenerator generator,
 	IPasswordHasher<Author> hasher,
-	ILogger<AuthController> logger) : ControllerBase
+	ILogger<AuthController> logger,
+	IValidator<RegisterRequest> registerRequestValidator
+) : ControllerBase
 {
 	[HttpPost]
 	[ProducesResponseType(typeof(RegisterResult), StatusCodes.Status409Conflict)]
+	[ProducesResponseType(typeof(RegisterResult), StatusCodes.Status422UnprocessableEntity)]
 	[ProducesResponseType(typeof(RegisterResult), StatusCodes.Status200OK)]
 	public async Task<IActionResult> Register([FromBody] RegisterRequest request)
 	{
 		logger.LogTrace("Incoming register request");
 
-		Author? existingAuthor = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
+		var existingAuthor = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
 		if (existingAuthor is not null)
 		{
-			logger.LogInformation("Rejected register request because of a duplicate username ({Username})",
-				request.Username);
+			logger.LogInformation(
+				"Rejected register request because of a duplicate username ({Username})",
+				request.Username
+			);
 
 			return Conflict(RegisterResult.UsernameExists());
 		}
 
-		try
-		{
-			logger.LogTrace("Validating register request");
+		logger.LogTrace("Validating register request");
 
-			request.Validate();
-		}
-		catch (ValidationException e)
+		if (!registerRequestValidator.IsValid(request))
 		{
-			logger.LogInformation("Rejected register request because of invalid data ({Message})", e.Message);
+			var errors = registerRequestValidator.GetErrors(request).ToList();
 
-			return UnprocessableEntity(RegisterResult.Invalid(e.Message));
+			logger.LogInformation("Rejected register request because of invalid data ({Errors})", errors);
+
+			return UnprocessableEntity(RegisterResult.InvalidRequest(errors.Select(e => e.ToString())));
 		}
 
 		var author = new Author
 		{
-			Username = request.Username
+			Username = request.Username,
 		};
 
 		var passwordHash = hasher.HashPassword(author, request.Password);
@@ -59,7 +62,7 @@ public class AuthController(
 
 		logger.LogTrace("Adding new author to DB (Username: {Username})", author.Username);
 
-		EntityEntry<Author> entity = await context.Authors.AddAsync(author);
+		var entity = await context.Authors.AddAsync(author);
 		await context.SaveChangesAsync();
 
 		logger.LogInformation("New author registered: {Author}", entity.Entity);
@@ -78,21 +81,24 @@ public class AuthController(
 	{
 		logger.LogTrace("Incoming create token request");
 
-		Author? author = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
+		var author = await context.Authors.FirstOrDefaultAsync(u => u.Username == request.Username);
 		if (author is null)
 		{
 			logger.LogTrace(
 				"Rejected create token request because no author with the username '{Username}' could be found",
-				request.Username);
+				request.Username
+			);
 
 			return Unauthorized(CreateTokenResult.Unauthorized());
 		}
 
-		PasswordVerificationResult result = hasher.VerifyHashedPassword(author, author.PasswordHash, request.Password);
+		var result = hasher.VerifyHashedPassword(author, author.PasswordHash, request.Password);
 		if (result == PasswordVerificationResult.Failed)
 		{
-			logger.LogTrace("Rejected create token request because password validation failed for username {Username}",
-				request.Username);
+			logger.LogTrace(
+				"Rejected create token request because password validation failed for username {Username}",
+				request.Username
+			);
 
 			return Unauthorized(CreateTokenResult.Unauthorized());
 		}
@@ -131,21 +137,23 @@ public class AuthController(
 			return Unauthorized(AuthCheckResult.NoIdClaim());
 		}
 
-		if (!Guid.TryParse(idStr, out Guid id))
+		if (!Guid.TryParse(idStr, out var id))
 		{
 			logger.LogTrace(
 				"Check authentication request failed because of an invalid id in claim ('{Id}' could not be parsed as a GUID)",
-				idStr);
+				idStr
+			);
 
 			return BadRequest(AuthCheckResult.InvalidIdClaim());
 		}
 
-		Author? author = context.Authors.Find(id);
+		var author = context.Authors.Find(id);
 		if (author is null)
 		{
 			logger.LogTrace(
 				"Check authentication request failed because no user with the given ID could be found (even though the claim was valid, ID: {Id})",
-				id);
+				id
+			);
 
 			return StatusCode(StatusCodes.Status403Forbidden, AuthCheckResult.NoAuthor());
 		}

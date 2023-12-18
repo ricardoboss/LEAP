@@ -13,7 +13,7 @@ public class LeapApiClientFactory(LeapApiCredentialManager? manager, IConfigurat
 
 	public LeapApiClient CreateClient(HttpClient httpClient)
 	{
-		Credentials? credentials = manager?.TryReadCredentials();
+		var credentials = manager?.TryReadCredentials();
 
 		httpClient.BaseAddress =
 			new(GetConfiguredBaseAddress() ?? credentials?.BaseAddress ?? Credentials.DefaultApiBaseAddress);

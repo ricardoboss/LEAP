@@ -19,5 +19,7 @@
 		<PackageVersion Include="Semver" Version="2.3.0"/>
 		<PackageVersion Include="PasswordRulesSharp" Version="2.0.0"/>
 		<PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3"/>
+		<PackageVersion Include="SignedUrl" Version="1.0.0"/>
+		<PackageVersion Include="SignedUrl.AspNet" Version="1.0.0"/>
 	</ItemGroup>
 </Project>

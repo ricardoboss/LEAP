@@ -13,17 +13,26 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
 		<PackageReference Include="Serilog.AspNetCore"/>
 		<PackageReference Include="Swashbuckle.AspNetCore"/>
+		<PackageReference Include="SignedUrl"/>
+		<PackageReference Include="SignedUrl.AspNet"/>
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="..\.dockerignore">
 			<Link>.dockerignore</Link>
 		</Content>
+		<Content Update="appsettings.Development.json">
+			<DependentUpon>appsettings.json</DependentUpon>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Leap.API.DB\Leap.API.DB.csproj"/>
 		<ProjectReference Include="..\Leap.Common\Leap.Common.csproj"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<_ContentIncludedByDefault Remove="Storage\string\test\1.0.1\metadata.json"/>
 	</ItemGroup>
 
 </Project>

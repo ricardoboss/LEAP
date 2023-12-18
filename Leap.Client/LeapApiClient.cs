@@ -1,13 +1,17 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using Leap.Common.API;
+using Leap.Common.DTO.API;
 
 namespace Leap.Client;
 
 public class LeapApiClient(HttpClient client)
 {
-	public async Task<BriefLibraryVersion?> GetLibraryAsync(string author, string name, string? version = null,
-		CancellationToken cancellationToken = default)
+	public async Task<SparseLibraryVersionDto?> GetLibraryAsync(
+		string author,
+		string name,
+		string? version = null,
+		CancellationToken cancellationToken = default
+	)
 	{
 		var uri = $"libraries/{author}/{name}";
 		if (version is not null)
@@ -15,7 +19,7 @@ public class LeapApiClient(HttpClient client)
 
 		try
 		{
-			return await GetJsonAsync<BriefLibraryVersion?>(uri, cancellationToken);
+			return await GetJsonAsync<SparseLibraryVersionDto?>(uri, cancellationToken);
 		}
 		catch (LeapApiException)
 		{
@@ -23,24 +27,27 @@ public class LeapApiClient(HttpClient client)
 		}
 	}
 
-	public async Task<UploadResult?> UploadLibraryAsync(string author, string name, string version, Stream stream,
-		CancellationToken cancellationToken = default)
+	public Task<NewVersionResult?> UploadLibraryAsync(
+		string author,
+		string name,
+		string version,
+		Stream stream,
+		CancellationToken cancellationToken = default
+	)
 	{
 		var uri = $"libraries/{author}/{name}/{version}";
 
-		return await PostStreamAsync<UploadResult>(uri, stream, cancellationToken);
+		return PostStreamAsync<NewVersionResult>(uri, stream, cancellationToken);
 	}
 
-	public async Task<RegisterResult?> RegisterAsync(RegisterRequest request,
-		CancellationToken cancellationToken = default)
+	public Task<RegisterResult?> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
 	{
-		return await PostJsonAsync<RegisterResult, RegisterRequest>("auth/register", request, cancellationToken);
+		return PostJsonAsync<RegisterResult, RegisterRequest>("auth/register", request, cancellationToken);
 	}
 
-	public async Task<CreateTokenResult?> CreateTokenAsync(CreateTokenRequest request,
-		CancellationToken cancellationToken = default)
+	public Task<CreateTokenResult?> CreateTokenAsync(CreateTokenRequest request, CancellationToken cancellationToken = default)
 	{
-		return await PostJsonAsync<CreateTokenResult, CreateTokenRequest>("auth/token", request, cancellationToken);
+		return PostJsonAsync<CreateTokenResult, CreateTokenRequest>("auth/token", request, cancellationToken);
 	}
 
 	public async Task<AuthCheckResult?> CheckAsync(CancellationToken cancellationToken = default)
@@ -55,44 +62,52 @@ public class LeapApiClient(HttpClient client)
 		}
 	}
 
-	private async Task<T?> GetJsonAsync<T>(string uri, CancellationToken cancellationToken = default)
+	private Task<T?> GetJsonAsync<T>(string uri, CancellationToken cancellationToken = default)
 	{
-		return await WrapAsync(async () =>
-		{
-			HttpResponseMessage response = await client.GetAsync(uri, cancellationToken);
+		return WrapAsync(
+			async () =>
+			{
+				var response = await client.GetAsync(uri, cancellationToken);
 
-			response.EnsureSuccessStatusCode();
+				response.EnsureSuccessStatusCode();
 
-			return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
-		}, cancellationToken);
+				return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+			},
+			cancellationToken
+		);
 	}
 
-	private async Task<TResponse?> PostJsonAsync<TResponse, TRequest>(string uri, TRequest? content,
-		CancellationToken cancellationToken = default)
+	private Task<TResponse?> PostJsonAsync<TResponse, TRequest>(string uri, TRequest? content, CancellationToken cancellationToken = default)
 	{
-		return await WrapAsync(async () =>
-		{
-			HttpResponseMessage response = await client.PostAsJsonAsync(uri, content, cancellationToken);
+		return WrapAsync(
+			async () =>
+			{
+				var response = await client.PostAsJsonAsync(uri, content, cancellationToken);
 
-			response.EnsureSuccessStatusCode();
+				response.EnsureSuccessStatusCode();
 
-			return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
-		}, cancellationToken);
+				return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
+			},
+			cancellationToken
+		);
 	}
 
-	private async Task<T?> PostStreamAsync<T>(string uri, Stream stream, CancellationToken cancellationToken = default)
+	private Task<T?> PostStreamAsync<T>(string uri, Stream stream, CancellationToken cancellationToken = default)
 	{
-		return await WrapAsync(async () =>
-		{
-			HttpResponseMessage response =
-				await client.PostAsync(uri, new StreamContent(stream), cancellationToken);
+		return WrapAsync(
+			async () =>
+			{
+				var response =
+					await client.PostAsync(uri, new StreamContent(stream), cancellationToken);
 
-			response.EnsureSuccessStatusCode();
+				response.EnsureSuccessStatusCode();
 
-			T? body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+				var body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
 
-			return body;
-		}, cancellationToken);
+				return body;
+			},
+			cancellationToken
+		);
 	}
 
 	private static async Task<T> WrapAsync<T>(Func<Task<T>> func, CancellationToken cancellationToken = default)

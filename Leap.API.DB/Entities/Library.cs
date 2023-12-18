@@ -10,13 +10,14 @@ public class Library
 
 	public string Name { get; set; } = null!;
 
-	[ForeignKey("LatestVersionId")] public LibraryVersion? LatestVersion { get; set; }
+	[ForeignKey("LatestVersionId")]
+	public LibraryVersion? LatestVersion { get; set; }
 
 	public ICollection<Author> Maintainers { get; set; } = null!;
 
 	public ICollection<LibraryVersion> Versions { get; set; } = null!;
 
-	public ICollection<LibraryVersionDependency> Dependents { get; set; } = null!;
+	// public ICollection<LibraryLink> Dependents { get; set; } = null!;
 
 	/// <inheritdoc />
 	public override string ToString()

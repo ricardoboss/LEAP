@@ -11,6 +11,7 @@ public class NullResultToNotFoundFilter : IAlwaysRunResultFilter
 
 	public void OnResultExecuting(ResultExecutingContext context)
 	{
-		if (context.Result is ObjectResult { Value: null }) context.Result = new NotFoundResult();
+		if (context.Result is ObjectResult { Value: null })
+			context.Result = new NotFoundResult();
 	}
 }

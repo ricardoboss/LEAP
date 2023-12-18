@@ -17,7 +17,7 @@ namespace Leap.API.DB.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -83,6 +83,28 @@ namespace Leap.API.DB.Migrations
                     b.ToTable("Libraries");
                 });
 
+            modelBuilder.Entity("Leap.API.DB.Entities.LibraryLink", b =>
+                {
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Nature")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VersionRange")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SourceId", "TargetId");
+
+                    b.HasIndex("TargetId");
+
+                    b.ToTable("LibraryLink");
+                });
+
             modelBuilder.Entity("Leap.API.DB.Entities.LibraryVersion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -91,6 +113,9 @@ namespace Leap.API.DB.Migrations
 
                     b.Property<Guid>("LibraryId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ReleaseDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Version")
                         .IsRequired()
@@ -103,23 +128,32 @@ namespace Leap.API.DB.Migrations
                     b.ToTable("LibraryVersions");
                 });
 
-            modelBuilder.Entity("Leap.API.DB.Entities.LibraryVersionDependency", b =>
+            modelBuilder.Entity("Leap.API.DB.Entities.PendingLibraryVersion", b =>
                 {
-                    b.Property<Guid>("VersionId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("DependencyId")
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LibraryId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("VersionRange")
+                    b.Property<Guid>("UploaderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Version")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("VersionId", "DependencyId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("DependencyId");
+                    b.HasIndex("LibraryId");
 
-                    b.ToTable("LibraryVersionDependency");
+                    b.HasIndex("UploaderId");
+
+                    b.ToTable("PendingLibraryVersions");
                 });
 
             modelBuilder.Entity("AuthorLibrary", b =>
@@ -146,6 +180,25 @@ namespace Leap.API.DB.Migrations
                     b.Navigation("LatestVersion");
                 });
 
+            modelBuilder.Entity("Leap.API.DB.Entities.LibraryLink", b =>
+                {
+                    b.HasOne("Leap.API.DB.Entities.LibraryVersion", "Source")
+                        .WithMany("Links")
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Leap.API.DB.Entities.Library", "Target")
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Source");
+
+                    b.Navigation("Target");
+                });
+
             modelBuilder.Entity("Leap.API.DB.Entities.LibraryVersion", b =>
                 {
                     b.HasOne("Leap.API.DB.Entities.Library", "Library")
@@ -157,35 +210,33 @@ namespace Leap.API.DB.Migrations
                     b.Navigation("Library");
                 });
 
-            modelBuilder.Entity("Leap.API.DB.Entities.LibraryVersionDependency", b =>
+            modelBuilder.Entity("Leap.API.DB.Entities.PendingLibraryVersion", b =>
                 {
-                    b.HasOne("Leap.API.DB.Entities.Library", "Dependency")
-                        .WithMany("Dependents")
-                        .HasForeignKey("DependencyId")
+                    b.HasOne("Leap.API.DB.Entities.Library", "Library")
+                        .WithMany()
+                        .HasForeignKey("LibraryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leap.API.DB.Entities.LibraryVersion", "Version")
-                        .WithMany("Dependencies")
-                        .HasForeignKey("VersionId")
+                    b.HasOne("Leap.API.DB.Entities.Author", "Uploader")
+                        .WithMany()
+                        .HasForeignKey("UploaderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Dependency");
+                    b.Navigation("Library");
 
-                    b.Navigation("Version");
+                    b.Navigation("Uploader");
                 });
 
             modelBuilder.Entity("Leap.API.DB.Entities.Library", b =>
                 {
-                    b.Navigation("Dependents");
-
                     b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("Leap.API.DB.Entities.LibraryVersion", b =>
                 {
-                    b.Navigation("Dependencies");
+                    b.Navigation("Links");
                 });
 #pragma warning restore 612, 618
         }

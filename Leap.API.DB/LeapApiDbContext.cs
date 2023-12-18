@@ -9,6 +9,8 @@ public class LeapApiDbContext(DbContextOptions<LeapApiDbContext> options) : DbCo
 
 	public DbSet<LibraryVersion> LibraryVersions { get; set; } = null!;
 
+	public DbSet<PendingLibraryVersion> PendingLibraryVersions { get; set; } = null!;
+
 	public DbSet<Author> Authors { get; set; } = null!;
 
 	public Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -32,26 +34,33 @@ public class LeapApiDbContext(DbContextOptions<LeapApiDbContext> options) : DbCo
 			.WithMany(a => a.Libraries);
 
 		modelBuilder.Entity<Library>()
-			.HasIndex(l => new
-			{
-				l.Author,
-				l.Name
-			})
+			.HasIndex(
+				l => new
+				{
+					l.Author,
+					l.Name,
+				}
+			)
 			.IsUnique();
 
-		modelBuilder.Entity<LibraryVersionDependency>()
-			.HasKey(d => new
-			{
-				d.VersionId,
-				d.DependencyId
-			});
+		modelBuilder.Entity<LibraryLink>()
+			.HasKey(
+				d => new
+				{
+					VersionId = d.SourceId, DependencyId = d.TargetId,
+				}
+			);
 
-		modelBuilder.Entity<Library>()
-			.HasMany<LibraryVersionDependency>(l => l.Dependents)
-			.WithOne(d => d.Dependency);
+		// modelBuilder.Entity<Library>()
+		// 	.HasMany<LibraryLink>(l => l.Dependents)
+		// 	.WithOne(d => d.Target);
 
 		modelBuilder.Entity<LibraryVersion>()
-			.HasMany<LibraryVersionDependency>(v => v.Dependencies)
-			.WithOne(l => l.Version);
+			.HasMany<LibraryLink>(v => v.Links)
+			.WithOne(l => l.Source);
+
+		modelBuilder.Entity<PendingLibraryVersion>()
+			.Navigation(p => p.Library)
+			.AutoInclude();
 	}
 }

@@ -40,7 +40,7 @@ public class LeapApiCredentialManager(IConfiguration configuration)
 		if (!CredentialsExist())
 			return null;
 
-		using FileStream stream = File.OpenRead(CredentialsPath);
+		using var stream = File.OpenRead(CredentialsPath);
 
 		return cachedCredentials = JsonSerializer.Deserialize<Credentials>(stream);
 	}
@@ -55,7 +55,7 @@ public class LeapApiCredentialManager(IConfiguration configuration)
 		if (dir != null && !Directory.Exists(dir))
 			Directory.CreateDirectory(dir);
 
-		using FileStream stream = File.OpenWrite(CredentialsPath);
+		using var stream = File.OpenWrite(CredentialsPath);
 
 		JsonSerializer.SerializeAsync(stream, newCredentials);
 

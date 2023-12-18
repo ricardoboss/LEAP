@@ -21,12 +21,12 @@ public class TokenGenerator(IConfiguration configuration, ILogger<TokenGenerator
 		var claims = new List<Claim>
 		{
 			new(IdClaim, author.Id.ToString()),
-			new(UsernameClaim, author.Username)
+			new(UsernameClaim, author.Username),
 		};
 
 		logger.LogTrace("Adding claims {Claims}", claims);
 
-		SymmetricSecurityKey key = configuration.GetJwtSecretKey();
+		var key = configuration.GetJwtSecretKey();
 		var issuer = configuration.GetJwtIssuer();
 		var audience = configuration.GetJwtAudience();
 
@@ -36,11 +36,11 @@ public class TokenGenerator(IConfiguration configuration, ILogger<TokenGenerator
 			Expires = DateTime.UtcNow.AddDays(30),
 			Issuer = issuer,
 			Audience = audience,
-			SigningCredentials = new(key, SecurityAlgorithms.HmacSha256)
+			SigningCredentials = new(key, SecurityAlgorithms.HmacSha256),
 		};
 
 		var handler = new JwtSecurityTokenHandler();
-		SecurityToken? securityToken = handler.CreateToken(descriptor);
+		var securityToken = handler.CreateToken(descriptor);
 
 		logger.LogInformation("Emitting new JWT for author {Author}", author);
 

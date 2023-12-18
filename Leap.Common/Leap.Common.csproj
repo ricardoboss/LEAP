@@ -27,4 +27,10 @@
 		<Folder Include="DTO\"/>
 	</ItemGroup>
 
+	<ItemGroup>
+		<Reference Include="Microsoft.AspNetCore.Http.Features">
+			<HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.0\Microsoft.AspNetCore.Http.Features.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
 </Project>

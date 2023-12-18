@@ -62,7 +62,8 @@ namespace Leap.API.DB.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     LibraryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Version = table.Column<string>(type: "text", nullable: false)
+                    Version = table.Column<string>(type: "text", nullable: false),
+                    ReleaseDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,25 +77,26 @@ namespace Leap.API.DB.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LibraryVersionDependency",
+                name: "LibraryLink",
                 columns: table => new
                 {
-                    VersionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DependencyId = table.Column<Guid>(type: "uuid", nullable: false),
-                    VersionRange = table.Column<string>(type: "text", nullable: false)
+                    SourceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TargetId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VersionRange = table.Column<string>(type: "text", nullable: false),
+                    Nature = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LibraryVersionDependency", x => new { x.VersionId, x.DependencyId });
+                    table.PrimaryKey("PK_LibraryLink", x => new { x.SourceId, x.TargetId });
                     table.ForeignKey(
-                        name: "FK_LibraryVersionDependency_Libraries_DependencyId",
-                        column: x => x.DependencyId,
+                        name: "FK_LibraryLink_Libraries_TargetId",
+                        column: x => x.TargetId,
                         principalTable: "Libraries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LibraryVersionDependency_LibraryVersions_VersionId",
-                        column: x => x.VersionId,
+                        name: "FK_LibraryLink_LibraryVersions_SourceId",
+                        column: x => x.SourceId,
                         principalTable: "LibraryVersions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -117,9 +119,9 @@ namespace Leap.API.DB.Migrations
                 column: "LatestVersionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LibraryVersionDependency_DependencyId",
-                table: "LibraryVersionDependency",
-                column: "DependencyId");
+                name: "IX_LibraryLink_TargetId",
+                table: "LibraryLink",
+                column: "TargetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LibraryVersions_LibraryId",
@@ -153,7 +155,7 @@ namespace Leap.API.DB.Migrations
                 name: "AuthorLibrary");
 
             migrationBuilder.DropTable(
-                name: "LibraryVersionDependency");
+                name: "LibraryLink");
 
             migrationBuilder.DropTable(
                 name: "Authors");

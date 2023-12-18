@@ -1,14 +1,21 @@
+using Leap.API.Controllers;
 using Leap.API.DB;
 using Leap.API.DB.Entities;
 using Leap.API.Extensions;
 using Leap.API.Filters;
 using Leap.API.Interfaces;
 using Leap.API.Services;
+using Leap.Common.DTO.API;
+using Leap.Common.Validators;
+using Leap.Common.Validators.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
+using SignedUrl;
+using SignedUrl.Abstractions;
+using SignedUrl.AspNet;
 
 Log.Logger = new LoggerConfiguration()
 	.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -18,21 +25,33 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-	WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+	var builder = WebApplication.CreateBuilder(args);
 
-	builder.Host.UseSerilog((context, services, configuration) => configuration
-		.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-		.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-		.ReadFrom.Configuration(context.Configuration)
-		.ReadFrom.Services(services)
-		.Enrich.FromLogContext()
-		.WriteTo.Console());
+	builder.Host.UseSerilog(
+		(context, services, configuration) => configuration
+			.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+			.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+			.ReadFrom.Configuration(context.Configuration)
+			.ReadFrom.Services(services)
+			.Enrich.FromLogContext()
+			.WriteTo.Console()
+	);
 
 	builder.Services.AddControllers(options => options.Filters.Add<NullResultToNotFoundFilter>());
 
 	// Add services to the container.
-	builder.Services.AddDbContext<LeapApiDbContext>(options =>
-		LeapApiDbContextFactory.ConfigureDbContext(options, builder.Configuration));
+	builder.Services.AddDbContext<LeapApiDbContext>(
+		options =>
+			LeapApiDbContextFactory.ConfigureDbContext(options, builder.Configuration)
+	);
+
+	builder.Services.AddSingleton<IValidator<RegisterRequest>, RegisterRequestValidator>();
+
+	builder.Services.AddHttpContextAccessor();
+	builder.Services.AddScoped<IUploadEndpointGenerator, StorageController>();
+
+	builder.Services.AddSingleton<IQuerySigner, DigestQuerySigner>();
+	builder.Services.AddSingleton<ISignatureProtector, DataProtectionSignatureProtector>();
 
 	builder.Services.AddSingleton<IPasswordHasher<Author>, PasswordHasher<Author>>();
 	builder.Services.AddSingleton<ILibraryStorage, FilesystemLibraryStorage>();
@@ -40,53 +59,59 @@ try
 
 	builder.Services
 		.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-		.AddJwtBearer(options =>
-		{
-			options.TokenValidationParameters = new()
+		.AddJwtBearer(
+			options =>
 			{
-				ValidateIssuer = true,
-				ValidateAudience = true,
-				ValidateLifetime = true,
-				ValidateIssuerSigningKey = true,
-				ValidIssuer = builder.Configuration.GetJwtIssuer(),
-				ValidAudience = builder.Configuration.GetJwtAudience(),
-				IssuerSigningKey = builder.Configuration.GetJwtSecretKey()
-			};
-		});
+				options.TokenValidationParameters = new()
+				{
+					ValidateIssuer = true,
+					ValidateAudience = true,
+					ValidateLifetime = true,
+					ValidateIssuerSigningKey = true,
+					ValidIssuer = builder.Configuration.GetJwtIssuer(),
+					ValidAudience = builder.Configuration.GetJwtAudience(),
+					IssuerSigningKey = builder.Configuration.GetJwtSecretKey(),
+				};
+			}
+		);
 
 	// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 	builder.Services.AddEndpointsApiExplorer();
-	builder.Services.AddSwaggerGen(options =>
-	{
-		var scheme = new OpenApiSecurityScheme
+	builder.Services.AddSwaggerGen(
+		options =>
 		{
-			BearerFormat = "JWT",
-			Name = "JWT Authentication",
-			In = ParameterLocation.Header,
-			Type = SecuritySchemeType.Http,
-			Scheme = JwtBearerDefaults.AuthenticationScheme,
-			Reference = new()
+			var scheme = new OpenApiSecurityScheme
 			{
-				Id = JwtBearerDefaults.AuthenticationScheme,
-				Type = ReferenceType.SecurityScheme
-			}
-		};
+				BearerFormat = "JWT",
+				Name = "JWT Authentication",
+				In = ParameterLocation.Header,
+				Type = SecuritySchemeType.Http,
+				Scheme = JwtBearerDefaults.AuthenticationScheme,
+				Reference = new()
+				{
+					Id = JwtBearerDefaults.AuthenticationScheme,
+					Type = ReferenceType.SecurityScheme,
+				},
+			};
 
-		options.AddSecurityDefinition(scheme.Reference.Id, scheme);
+			options.AddSecurityDefinition(scheme.Reference.Id, scheme);
 
-		options.AddSecurityRequirement(new()
-		{
-			{ scheme, Array.Empty<string>() }
-		});
-	});
+			options.AddSecurityRequirement(
+				new()
+				{
+					{ scheme, Array.Empty<string>() },
+				}
+			);
+		}
+	);
 
-	WebApplication app = builder.Build();
+	var app = builder.Build();
 
 	app.UseSerilogRequestLogging();
 
-	await using (AsyncServiceScope scope = app.Services.CreateAsyncScope())
+	await using (var scope = app.Services.CreateAsyncScope())
 	{
-		LeapApiDbContext context = scope.ServiceProvider.GetRequiredService<LeapApiDbContext>();
+		var context = scope.ServiceProvider.GetRequiredService<LeapApiDbContext>();
 
 		await context.InitializeAsync();
 	}

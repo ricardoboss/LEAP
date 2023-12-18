@@ -10,7 +10,9 @@ public class LibraryVersion
 
 	public string Version { get; set; } = null!;
 
-	public ICollection<LibraryVersionDependency> Dependencies { get; set; } = null!;
+	public DateTimeOffset ReleaseDate { get; set; }
+
+	public ICollection<LibraryLink> Links { get; set; } = null!;
 
 	/// <inheritdoc />
 	public override string ToString()
