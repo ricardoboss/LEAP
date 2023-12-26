@@ -13,9 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
-using SignedUrl;
-using SignedUrl.Abstractions;
-using SignedUrl.AspNet;
+using SignedUrl.Extensions;
 
 Log.Logger = new LoggerConfiguration()
 	.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -50,8 +48,7 @@ try
 	builder.Services.AddHttpContextAccessor();
 	builder.Services.AddScoped<IUploadEndpointGenerator, StorageController>();
 
-	builder.Services.AddSingleton<IQuerySigner, DigestQuerySigner>();
-	builder.Services.AddSingleton<ISignatureProtector, DataProtectionSignatureProtector>();
+	builder.Services.AddSignedUrl();
 
 	builder.Services.AddSingleton<IPasswordHasher<Author>, PasswordHasher<Author>>();
 	builder.Services.AddSingleton<ILibraryStorage, FilesystemLibraryStorage>();

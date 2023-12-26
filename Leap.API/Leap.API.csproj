@@ -12,9 +12,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
 		<PackageReference Include="Serilog.AspNetCore"/>
+		<PackageReference Include="SignedUrl.Extensions" />
 		<PackageReference Include="Swashbuckle.AspNetCore"/>
-		<PackageReference Include="SignedUrl"/>
-		<PackageReference Include="SignedUrl.AspNet"/>
 	</ItemGroup>
 
 	<ItemGroup>

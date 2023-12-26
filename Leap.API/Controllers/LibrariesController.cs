@@ -306,7 +306,7 @@ public class LibrariesController
 
 		await context.SaveChangesAsync(cancellationToken);
 
-		var uploadEndpointData = await uploadEndpointGenerator.GenerateUploadEndpointDataAsync(Request, pendingVersion, cancellationToken);
+		var uploadEndpointData = await uploadEndpointGenerator.GenerateUploadEndpointDataAsync(HttpContext, pendingVersion, cancellationToken);
 
 		return Ok(NewVersionResult.Success(uploadEndpointData));
 	}

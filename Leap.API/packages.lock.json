@@ -38,24 +38,16 @@
           "Serilog.Sinks.File": "5.0.0"
         }
       },
-      "SignedUrl": {
+      "SignedUrl.Extensions": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "kRRYTwAfHdLq78VTCYpJJf7YqBowJFBdR2rbEkdiOoDXaObszTB+yktbs+WDCtY69JtQ0YHfQ1/TJD6Lrzn2xw==",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "RU1wZIgLzQ3yFRh29cJlbKnkcBWxktyMhazncRJTWTwMonKYJQfhGt0ohKcCI8+fy8l9BesyFeFCTbKyRFvncg==",
         "dependencies": {
-          "SignedUrl.Abstractions": "1.0.0"
-        }
-      },
-      "SignedUrl.AspNet": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "2dx8W2kIzY162s17SwMHWTbWk8aPY4M4q5GiZGHz+kO4R1EhsB6JtbJN0Lp3Tf0Ne8S6PBBlMjdZOxAWAdFqUw==",
-        "dependencies": {
-          "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.0",
-          "Microsoft.AspNetCore.Http.Abstractions": "2.2.0",
-          "SignedUrl.Abstractions": "1.0.0"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "SignedUrl": "1.2.0",
+          "SignedUrl.Abstractions": "1.2.0",
+          "SignedUrl.AspNet": "1.2.0"
         }
       },
       "Swashbuckle.AspNetCore": {
@@ -388,10 +380,28 @@
           "Serilog": "2.10.0"
         }
       },
+      "SignedUrl": {
+        "type": "Transitive",
+        "resolved": "1.2.0",
+        "contentHash": "rI0Z5k4WQYEhyx3hLiw1hMzhV0Bb/jpQ+9joOGBwRwdpmrkUxuX9Q7OH0x/w+6XnCBBLZSB0moeCmZxUOMoT3A==",
+        "dependencies": {
+          "SignedUrl.Abstractions": "1.2.0"
+        }
+      },
       "SignedUrl.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "O6v2Tpw/TnvitEi3DGNypC1cQcoRF3gh2qCzmVEZeId1GQF6MDwaE1hhwyu7maaVrNbCgdAYZtddPpt4SrJ0rw=="
+        "resolved": "1.2.0",
+        "contentHash": "4wSCb9zA6THyC0R5UFQkXZi1YJbk9xWKBlA7Rbq3gGrfoLdVISLpuZPx2djwf01wACQTvg/ajJumQkRSk7ultA=="
+      },
+      "SignedUrl.AspNet": {
+        "type": "Transitive",
+        "resolved": "1.2.0",
+        "contentHash": "k3BmUELwtENsMlO52c+nX/Av+YHwQTsGGPCEwNcP1ADDuVg8neZ5MNE7tB5e6Wk1fGRzJ0FoIrdXKd7zizjYYg==",
+        "dependencies": {
+          "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.0",
+          "Microsoft.AspNetCore.Http.Abstractions": "2.2.0",
+          "SignedUrl.Abstractions": "1.2.0"
+        }
       },
       "Swashbuckle.AspNetCore.Swagger": {
         "type": "Transitive",

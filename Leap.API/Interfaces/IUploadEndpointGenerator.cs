@@ -7,7 +7,7 @@ namespace Leap.API.Interfaces;
 public interface IUploadEndpointGenerator
 {
 	public Task<UploadEndpointData> GenerateUploadEndpointDataAsync(
-		HttpRequest request,
+		HttpContext context,
 		PendingLibraryVersion pendingVersion,
 		CancellationToken cancellationToken = default
 	);

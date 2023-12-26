@@ -14,7 +14,7 @@ public record UploadResult(string Code, string Message, SparseLibraryVersionDto?
 
 	public static UploadResult PendingVersionNotFound()
 	{
-		return new("pending_version_not_found", "Pending version not found");
+		return new("pending_version_not_found", "No pending version with the given pid was not found");
 	}
 
 	public static UploadResult MissingLibraryArchive()

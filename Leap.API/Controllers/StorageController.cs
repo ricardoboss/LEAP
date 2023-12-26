@@ -5,40 +5,34 @@ using Leap.API.Interfaces;
 using Leap.Common.DTO.API;
 using Microsoft.AspNetCore.Mvc;
 using SignedUrl.Abstractions;
-using SignedUrl.AspNet;
 
 namespace Leap.API.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 public class StorageController
-	(ILogger<StorageController> logger, LeapApiDbContext context, IQuerySigner signer, ILibraryStorage storage, LinkGenerator linkGenerator)
+	(ILogger<StorageController> logger, LeapApiDbContext dbContext, IUrlSigner signer, ILibraryStorage storage, LinkGenerator linkGenerator)
 	: LibraryControllerBase, IUploadEndpointGenerator
 {
 	[NonAction]
 	public Task<UploadEndpointData> GenerateUploadEndpointDataAsync(
-		HttpRequest request,
+		HttpContext generateContext,
 		PendingLibraryVersion pendingVersion,
 		CancellationToken cancellationToken = default
 	)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		var endpoint = linkGenerator.GetPathByAction("Upload", "Storage") ??
+		var uploadUrl = linkGenerator.GetUriByAction(generateContext, "Upload", "Storage", new { pid = pendingVersion.Id.ToString() }) ??
 		               throw new InvalidOperationException("Failed to generate upload endpoint URL");
 
-		var query = new Dictionary<string, string?>
-		{
-			{ "pid", pendingVersion.Id.ToString() },
-		};
+		var signedUploadUrl = signer.Sign(uploadUrl);
 
-		var url = signer.GenerateFullyQualified(request, endpoint, query, true);
-
-		return Task.FromResult(new UploadEndpointData(url));
+		return Task.FromResult(new UploadEndpointData(signedUploadUrl));
 	}
 
 	[HttpPost]
-	[ProducesResponseType(typeof(UploadResult), StatusCodes.Status204NoContent)]
+	[ProducesResponseType(typeof(UploadResult), StatusCodes.Status302Found)]
 	[ProducesResponseType(typeof(UploadResult), StatusCodes.Status400BadRequest)]
 	[ProducesResponseType(typeof(UploadResult), StatusCodes.Status404NotFound)]
 	[ProducesResponseType(typeof(UploadResult), StatusCodes.Status411LengthRequired)]
@@ -51,10 +45,10 @@ public class StorageController
 		CancellationToken cancellationToken = default
 	)
 	{
-		if (!signer.ValidateSignature(Request.QueryString.ToUriComponent()))
+		if (!signer.Validate(Request))
 			return BadRequest(UploadResult.InvalidSignature());
 
-		var pendingVersion = await context.PendingLibraryVersions.FindAsync(new object?[] { pid }, cancellationToken);
+		var pendingVersion = await dbContext.PendingLibraryVersions.FindAsync([pid], cancellationToken);
 		if (pendingVersion is null)
 			return NotFound(UploadResult.PendingVersionNotFound());
 
@@ -90,34 +84,26 @@ public class StorageController
 			await libraryArchive.CopyToAsync(storageArchive, cancellationToken);
 		}
 
-		var finalizeEndpoint = Url.ActionLink("Finalize", "Storage") ??
+		var finalizeUrl = linkGenerator.GetUriByAction(HttpContext, "Finalize", "Storage", new { pid = pendingVersion.Id.ToString() }) ??
 		                       throw new InvalidOperationException("Failed to generate finalize endpoint URL");
 
-		var finalizeUrl = signer.GenerateFullyQualified(
-			Request,
-			finalizeEndpoint,
-			new Dictionary<string, string?>
-			{
-				{ "pid", pendingVersion.Id.ToString() },
-			},
-			true
-		);
+		var signedFinalizeUrl = signer.Sign(finalizeUrl);
 
 		logger.LogTrace("Generated finalize url for archive {PendingId} to {FinalizeUrl}", pendingVersion.Id, finalizeUrl);
 
-		Response.Headers.Location = finalizeUrl;
-		return NoContent();
+		return Redirect(signedFinalizeUrl);
 	}
 
 	[HttpGet]
+	[ProducesResponseType(typeof(FinalizeResult), StatusCodes.Status200OK)]
 	[ProducesResponseType(typeof(FinalizeResult), StatusCodes.Status400BadRequest)]
 	[ProducesResponseType(typeof(FinalizeResult), StatusCodes.Status424FailedDependency)]
 	public async Task<IActionResult> Finalize([FromQuery] Guid pid, [FromQuery] string s, CancellationToken cancellationToken = default)
 	{
-		if (!signer.ValidateSignature(Request.QueryString.ToUriComponent()))
+		if (!signer.Validate(Request))
 			return BadRequest(FinalizeResult.InvalidSignature());
 
-		var pendingVersion = await context.PendingLibraryVersions.FindAsync(new object?[] { pid }, cancellationToken);
+		var pendingVersion = await dbContext.PendingLibraryVersions.FindAsync([pid], cancellationToken);
 		if (pendingVersion is null)
 			return StatusCode(StatusCodes.Status424FailedDependency, FinalizeResult.PendingVersionNotFound());
 
@@ -134,15 +120,15 @@ public class StorageController
 		// TODO: read the library's metadata from the archive and store it in the database (like dependencies)
 
 		// add this new version to the global list of versions
-		await context.LibraryVersions.AddAsync(libraryVersion, cancellationToken);
+		await dbContext.LibraryVersions.AddAsync(libraryVersion, cancellationToken);
 
 		// update the library's latest version
 		pendingVersion.Library.LatestVersion = libraryVersion;
 
 		// remove the pending version
-		context.PendingLibraryVersions.Remove(pendingVersion);
+		dbContext.PendingLibraryVersions.Remove(pendingVersion);
 
-		await context.SaveChangesAsync(cancellationToken);
+		await dbContext.SaveChangesAsync(cancellationToken);
 
 		logger.LogInformation("Updated latest version of {Library} to {Version}", libraryVersion.Library, libraryVersion);
 		logger.LogDebug("Removed {PendingVersion} to finalize {LibraryVersion}", pendingVersion, libraryVersion);

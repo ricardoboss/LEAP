@@ -17,19 +17,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="PasswordRulesSharp"/>
 		<PackageReference Include="Semver"/>
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="DTO\"/>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="Microsoft.AspNetCore.Http.Features">
-			<HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.0\Microsoft.AspNetCore.Http.Features.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 </Project>
