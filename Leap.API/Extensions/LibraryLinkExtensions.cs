@@ -7,12 +7,12 @@ public static class LibraryLinkExtensions
 {
 	public static LinkDto ToLink(this LibraryLink link)
 	{
-		return new()
-		{
-			Source = $"{link.Source.Library.Name}@{link.Source.Version}",
-			Target = $"{link.Target.Name}",
-			Constraint = link.VersionRange,
-			Nature = link.Nature,
-		};
+		return new(
+			Source: link.Source.Library.Name,
+			SourceVersion: link.Source.Version,
+			Target: link.Target.Name,
+			Constraint: link.VersionRange,
+			Nature: link.Nature
+		);
 	}
 }

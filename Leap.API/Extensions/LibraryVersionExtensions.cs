@@ -8,14 +8,13 @@ public static class LibraryVersionExtensions
 {
 	public static SparseLibraryVersionDto ToSparse(this LibraryVersion version, string? downloadUrl = null)
 	{
-		return new()
-		{
-			Author = version.Library.Author,
-			Name = version.Library.Name,
-			Version = version.Version,
-			Links = version.Links.ToFrozenDictionary(l => l.Target.Name, l => l.ToLink()),
-			DistUrl = downloadUrl,
-			ReleaseDate = version.ReleaseDate,
-		};
+		return new(
+			Author: version.Library.Author,
+			Name: version.Library.Name,
+			Version: version.Version,
+			Links: version.Links.ToFrozenDictionary(l => l.Target.Name, l => l.ToLink()),
+			DistUrl: downloadUrl,
+			ReleaseDate: version.ReleaseDate
+		);
 	}
 }

@@ -5,16 +5,39 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>default</LangVersion>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Title>LEAP Common</Title>
-		<Authors>Ricardo Boss</Authors>
-		<Description>A library of common code for projects using/interacting with LEAP packages</Description>
-		<Copyright>2023 Ricardo Boss</Copyright>
-		<PackageProjectUrl>https://github.com/ricardoboss/LEAP</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/ricardoboss/LEAP</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageReleaseNotes>Initial version release</PackageReleaseNotes>
+		<Configurations>Debug;Release;Nuget</Configurations>
+		<Platforms>AnyCPU</Platforms>
 	</PropertyGroup>
+
+	<PropertyGroup>
+		<Title>LEAP Common</Title>
+		<Description>A library of common components for interacting with LEAP APIs.</Description>
+		<IsPackable>true</IsPackable>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Nuget' ">
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	  <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\"/>
+		<None Include="../LICENSE" Pack="true" PackagePath="\"/>
+	</ItemGroup>
+
+	<!-- https://dev.to/j_sakamoto/writing-a-nuget-package-release-notes-in-an-outside-of-a-csproj-file-3f94 -->
+	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+		<ReadLinesFromFile File="CHANGELOG.md">
+			<Output TaskParameter="Lines" ItemName="ReleaseNoteLines" />
+		</ReadLinesFromFile>
+		<PropertyGroup>
+			<PackageReleaseNotes>@(ReleaseNoteLines, '%0a')</PackageReleaseNotes>
+		</PropertyGroup>
+	</Target>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -24,6 +47,7 @@
 		<PackageReference Include="PasswordRulesSharp"/>
 		<PackageReference Include="Semver"/>
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
 	</ItemGroup>
 
 </Project>
