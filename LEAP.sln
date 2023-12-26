@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leap.Common", "Leap.Common\Leap.Common.csproj", "{8AE30B27-9EA4-4001-85BB-21CC45B5A15C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepLang.Leap.Common", "StepLang.Leap.Common\StepLang.Leap.Common.csproj", "{8AE30B27-9EA4-4001-85BB-21CC45B5A15C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3BCEC873-CE82-4E98-94D8-640BC309CE4B}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,11 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leap.Client", "Leap.Client\Leap.Client.csproj", "{47532287-F473-4765-B3EC-944E99CA65D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepLang.Leap.Client", "StepLang.Leap.Client\StepLang.Leap.Client.csproj", "{47532287-F473-4765-B3EC-944E99CA65D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leap.API.DB", "Leap.API.DB\Leap.API.DB.csproj", "{5DA31E60-D545-4774-8F75-4C489BE57299}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepLang.Leap.API.DB", "StepLang.Leap.API.DB\StepLang.Leap.API.DB.csproj", "{5DA31E60-D545-4774-8F75-4C489BE57299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leap.API", "Leap.API\Leap.API.csproj", "{F69805E7-2D3D-4CEB-A1FA-50E312EFF6AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepLang.Leap.API", "StepLang.Leap.API\StepLang.Leap.API.csproj", "{F69805E7-2D3D-4CEB-A1FA-50E312EFF6AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

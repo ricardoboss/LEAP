@@ -5,7 +5,8 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<PackageId>Leap.API</PackageId>
+		<PackageId>StepLang.Leap.API</PackageId>
+		<RootNamespace>Leap.API</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,8 +27,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Leap.API.DB\Leap.API.DB.csproj"/>
-		<ProjectReference Include="..\Leap.Common\Leap.Common.csproj"/>
+		<ProjectReference Include="..\StepLang.Leap.API.DB\StepLang.Leap.API.DB.csproj" />
+		<ProjectReference Include="..\StepLang.Leap.Common\StepLang.Leap.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

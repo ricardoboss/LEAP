@@ -5,6 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>default</LangVersion>
+		<RootNamespace>Leap.API.DB</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Leap.Common\Leap.Common.csproj"/>
+		<ProjectReference Include="..\StepLang.Leap.Common\StepLang.Leap.Common.csproj" />
 	</ItemGroup>
 
 </Project>

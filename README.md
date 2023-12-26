@@ -8,12 +8,12 @@ A service for distributing and downloading [STEP] libraries.
 
 This repository contains several projects providing different parts for the LEAP ecosystem:
 
-- `Leap.API`: An ASP.NET project for hosting a LEAP instance
-- `Leap.API.DB`: The database layer for the `Leap.API`
-- `Leap.Client`: A HTTP client for the `Leap.API`
-- `Leap.Common`: A library of common code for the client and the API
+- `StepLang.Leap.API`: An ASP.NET project for hosting a LEAP instance
+- `StepLang.Leap.API.DB`: The database layer for the `StepLang.Leap.API`
+- `StepLang.Leap.Client`: A HTTP client for the `StepLang.Leap.API`
+- `StepLang.Leap.Common`: A library of common code for the client and the API
 
-Both `Leap.Client` and `Leap.Common` are distributed using NuGet packages and can be used to interact with a LEAP
+Both `StepLang.Leap.Client` and `StepLang.Leap.Common` are distributed using NuGet packages and can be used to interact with a LEAP
 instance.
 
 ### Running your own LEAP instance
@@ -22,7 +22,7 @@ To run your own LEAP instance, you do either of the following:
 
 - **From Sources**:
   - Check out the repository
-  - Run `dotnet run --project Leap.API/Leap.API.csproj`
+  - Run `dotnet run --project StepLang.Leap.API/StepLang.Leap.API.csproj`
 - **From Docker**:
   - ```
     docker run \

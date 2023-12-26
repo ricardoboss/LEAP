@@ -1,6 +1,6 @@
-# Leap.Common
+# StepLang.Leap.Client
 
-A library of common components for interacting with LEAP APIs.
+The official client library to interact with LEAP APIs.
 
 > LEAP stands for _Library ExchAnge Platform_ and is a package repository for
 > STEP libraries.
@@ -8,8 +8,12 @@ A library of common components for interacting with LEAP APIs.
 ## Installation
 
 ```bash
-dotnet add Leap.Common
+dotnet add StepLang.Leap.Client
 ```
+
+## Usage
+
+// TODO
 
 ## License
 

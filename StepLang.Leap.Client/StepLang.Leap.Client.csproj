@@ -7,11 +7,12 @@
 		<LangVersion>default</LangVersion>
 		<Configurations>Debug;Release;Nuget</Configurations>
 		<Platforms>AnyCPU</Platforms>
+		<RootNamespace>Leap.Client</RootNamespace>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Title>LEAP Common</Title>
-		<Description>A library of common components for interacting with LEAP APIs.</Description>
+		<Title>LEAP API Client</Title>
+		<Description>The official client library to interact with LEAP APIs.</Description>
 		<IsPackable>true</IsPackable>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -40,14 +41,12 @@
 	</Target>
 
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<ProjectReference Include="..\StepLang.Leap.Common\StepLang.Leap.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PasswordRulesSharp"/>
-		<PackageReference Include="Semver"/>
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions"/>
+		<PackageReference Include="Microsoft.Extensions.Http" />
 	</ItemGroup>
 
 </Project>

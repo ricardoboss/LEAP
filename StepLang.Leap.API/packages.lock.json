@@ -452,17 +452,17 @@
           "System.Text.Encodings.Web": "8.0.0"
         }
       },
-      "leap.api.db": {
+      "steplang.leap.api.db": {
         "type": "Project",
         "dependencies": {
-          "Leap.Common": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[8.0.0, )",
           "Microsoft.Extensions.Configuration": "[8.0.0, )",
           "Microsoft.Extensions.Configuration.Json": "[8.0.0, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[8.0.0, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[8.0.0, )",
+          "StepLang.Leap.Common": "[1.0.0-alpha.1, )"
         }
       },
-      "leap.common": {
+      "steplang.leap.common": {
         "type": "Project",
         "dependencies": {
           "PasswordRulesSharp": "[2.0.0, )",
