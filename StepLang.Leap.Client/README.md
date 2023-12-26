@@ -8,7 +8,7 @@ The official client library to interact with LEAP APIs.
 ## Installation
 
 ```bash
-dotnet add StepLang.Leap.Client
+dotnet add package StepLang.Leap.Client
 ```
 
 ## Usage

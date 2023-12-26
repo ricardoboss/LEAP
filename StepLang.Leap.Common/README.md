@@ -8,7 +8,7 @@ A library of common components for interacting with LEAP APIs.
 ## Installation
 
 ```bash
-dotnet add StepLang.Leap.Common
+dotnet add package StepLang.Leap.Common
 ```
 
 ## License
